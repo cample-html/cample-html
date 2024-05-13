@@ -14,10 +14,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Camplejs/cample-html"
+    "url": "https://github.com/cample-html/cample-html"
   },
   "bugs": {
-    "url": "https://github.com/Camplejs/cample-html/issues"
+    "url": "https://github.com/cample-html/cample-html/issues"
   },
   "homepage": "https://cample-html.github.io",
   "keywords": [

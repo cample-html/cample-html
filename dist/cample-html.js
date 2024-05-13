@@ -1,7 +1,7 @@
 /*!
- * cample-html v0.0.2 (https://github.com/Camplejs/cample-html)
+ * cample-html v0.0.2 (https://github.com/cample-html/cample-html/cample-html)
  * Copyright (c) 2024 Anton Maklakov
- * Licensed under MIT (https://github.com/Camplejs/cample-html/blob/main/LICENSE)
+ * Licensed under MIT (https://github.com/cample-html/cample-html/blob/main/LICENSE)
  */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) {

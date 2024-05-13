@@ -1,7 +1,7 @@
 {
   "name": "cample-html",
   "version": "0.0.2",
-  "description": "",
+  "description": "Work with server-side HTML with ease",
   "main": "dist/cample-html.min.js",
   "scripts": {
     "lint": "npx eslint src/**/* --fix",
@@ -19,6 +19,7 @@
   "bugs": {
     "url": "https://github.com/Camplejs/cample-html/issues"
   },
+  "homepage": "https://cample-html.github.io",
   "keywords": [
     "html",
     "rest",

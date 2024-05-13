@@ -112,7 +112,7 @@
               } else {
                 const { response } = req;
                 const templateWrapper = getResponseElements(response);
-                templateObject.template = templateWrapper;
+                templateObject.element = templateWrapper;
               }
             } catch (e) {
               throw e;
@@ -218,7 +218,7 @@
            *  [key: string]: string;
            * }
            * timeout?: number;}} options
-           * @returns {{ status:number, template: undefined | HTMLTemplateElement }}
+           * @returns {{ status:number, element: undefined | HTMLTemplateElement }}
            */
           const templateFunction = ({
             withCredentials = false,
@@ -227,7 +227,7 @@
             requestBody
           } = {}) => {
             const templateObject = {
-              template: undefined,
+              element: undefined,
               status: 0
             };
             makeXMLHttpRequest(

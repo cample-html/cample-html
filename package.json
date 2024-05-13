@@ -19,7 +19,13 @@
   "bugs": {
     "url": "https://github.com/Camplejs/cample-html/issues"
   },
-  "keywords": [],
+  "keywords": [
+    "html",
+    "rest",
+    "server",
+    "template",
+    "cample-html"
+  ],
   "author": "Anton Maklakov",
   "license": "MIT",
   "engines": {

@@ -12,7 +12,7 @@
 
 </div>
 
-<div align="center"><a href="https://cample-html.github.io">Website</a> • <a href="https://cample-html.github.io/documentation/introduction.html">Documentation</a> • <a href="https://cample-html.github.io/examples.html"> Examples </a>
+<div align="center"><a href="https://cample-html.github.io">Website</a> • <a href="https://cample-html.github.io/#/?id=template">Documentation</a>
 </div>
 
 ## About

@@ -1,5 +1,5 @@
 /*!
- * cample-html v0.0.3 (https://github.com/cample-html/cample-html/cample-html)
+ * cample-html v0.0.3 (https://github.com/cample-html/cample-html)
  * Copyright (c) 2024 Anton Maklakov
  * Licensed under MIT (https://github.com/cample-html/cample-html/blob/main/LICENSE)
  */

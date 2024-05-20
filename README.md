@@ -116,7 +116,10 @@ This method involves connecting the file through a third-party resource, which p
 <script
   src="https://unpkg.com/cample-html@0.0.3"
 ></script>
-<--
+<!--
+  integrity="sha384-..."
+  crossorigin="anonymous"
+-->
 ```
 
 This resource could be unpkg, skypack or other resources. The examples include unpkg simply because it is one of the most popular and its url by characters is not so long.

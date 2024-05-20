@@ -32,7 +32,7 @@ cample-html is a small library for working with server-side html. It is based on
   ></template>
 </div>
 
-<script src="https://unpkg.com/cample-html@0.0.2"></script>
+<script src="https://unpkg.com/cample-html@0.0.3"></script>
 ```
 
 ### Server route - /api/test
@@ -48,7 +48,7 @@ cample-html is a small library for working with server-side html. It is based on
   <div>123</div>
 </div>
 
-<script src="https://unpkg.com/cample-html@0.0.2"></script>
+<script src="https://unpkg.com/cample-html@0.0.3"></script>
 ```
 
 ## Example #2
@@ -62,15 +62,65 @@ const templateFn = CampleHTML.createTemplate(
 const elementObj = templateFn({ withCredentials:false, timeout:0 });
 ```
 
+### Why cample-html?
+
+cample-html is easy to use and effective in practice. You can literally download reusable HTML from the server in just a couple of clicks, which will reduce a huge amount of code and also simplify the creation of the user interface. Also, this product is open-source under the [MIT license](https://github.com/cample-html/cample-html/blob/master/LICENSE), which allows it to be used for commercial purposes.
+
+Here are a few small advantages that the module has:
+
+- Light weight
+- Ability to work with template mounting directly via js
+- Request Status Update
+- Fairly safe HTML processing without outerHTML and similar functions, which minimizes the likelihood of errors
+- Fully documented
+
+And other advantages that will be visible when working with the module.
+
 ## Installation
 
-Install via NPM:
+Cample-html can be installed in several ways, which are described in this article. This tool is a simple javascript file that is connected in the usual way through a `script`, or using the `import` construct in an environment that supports this (webpack build, parcel build etc.). The first and easiest way is to install using a CDN.
+
+### Package Manager
+
+This method involves downloading through npm or other package managers.
 
 ```bash
 npm i cample-html
 ```
 
-Along the path `node-modules/cample-html/dist` you can find two files that contain a regular js file and a minified one.
+> [Node.js](https://nodejs.org) is required for npm.
+
+Along the path node-modules/cample-html/dist you can find two files that contain a regular js file and a minified one.
+
+### Manual download
+
+You can install the package by simply [downloading](https://unpkg.com/cample-html@0.0.3/dist/cample-html.min.js) it as a file and moving it to the project folder.
+
+```html
+<script src="./cample-html.min.js"></script>
+```
+
+If, for some reason, you do not need the minified file, then you can download the full file from this [link](https://unpkg.com/cample-html@0.0.3/dist/cample-html.js).
+
+```html
+<script src="./cample-html.js"></script>
+```
+
+The non-minified file is larger in size, but it is there as it is with all the formatting.
+
+### CDN
+
+This method involves connecting the file through a third-party resource, which provides the ability to obtain a javascript file from npm via a link.
+
+```html
+<script
+  src="https://unpkg.com/cample-html@0.0.3"
+></script>
+<--
+```
+
+This resource could be unpkg, skypack or other resources. The examples include unpkg simply because it is one of the most popular and its url by characters is not so long.
+
 
 ## Changelog
 

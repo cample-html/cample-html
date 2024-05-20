@@ -124,6 +124,28 @@ This method involves connecting the file through a third-party resource, which p
 
 This resource could be unpkg, skypack or other resources. The examples include unpkg simply because it is one of the most popular and its url by characters is not so long.
 
+## Getting started
+
+After installation using any convenient method described in [Installation](/?id=installation), you can start working with the server in the following way:
+
+```html
+<div>
+  <template data-cample data-src="/api/test" data-method="get"></template>
+</div>
+```
+
+Or, if the html method is not suitable, then in cample-html there is a `CampleHTML` object that provides a list of functions and methods that allow you to conveniently work with the server. Usage example:
+
+```javascript
+const templateFn = CampleHTML.createTemplate(
+  `<template data-cample data-src="/api/test" data-method="get"></template>`
+);
+
+// (After the response arrives from the server) { element = template (HTMLTemplateElement type), status = 200 }
+const elementObj = templateFn({ withCredentials: false, timeout: 0 });
+```
+
+These will be the two main ways to interact with the server. In future versions, the functionality will be expanded, but the methods themselves will not change.
 
 ## Changelog
 

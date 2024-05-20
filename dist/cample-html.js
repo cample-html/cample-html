@@ -1,5 +1,5 @@
 /*!
- * cample-html v0.0.2 (https://github.com/cample-html/cample-html/cample-html)
+ * cample-html v0.0.3 (https://github.com/cample-html/cample-html/cample-html)
  * Copyright (c) 2024 Anton Maklakov
  * Licensed under MIT (https://github.com/cample-html/cample-html/blob/main/LICENSE)
  */
@@ -23,14 +23,23 @@
     const createError = (text) => {
       throw new Error(text);
     };
-    const createWarning = (text) => {
-      console.warn(text);
+    const getIsMethodValid = (method) => {
+      return (
+        method !== "get" &&
+        method !== "post" &&
+        method !== "put" &&
+        method !== "delete" &&
+        method !== "patch"
+      );
     };
     const NODE_ATTR = "TEMPLATE";
-    const CAMPLE_ATTRIBUTE = "data-cample";
-    const SOURCE_ATTR = "data-src";
-    const METHOD_ATTR = "data-method";
-    const STATUS_ATTR = "data-status";
+    const DATA_STATIC = "data-";
+    const CAMPLE_ATTRIBUTE = `${DATA_STATIC}cample`;
+    const SOURCE_ATTR = `${DATA_STATIC}src`;
+    const METHOD_ATTR = `${DATA_STATIC}method`;
+    const STATUS_ATTR = `${DATA_STATIC}status`;
+    const AFTER_ATTR = `${DATA_STATIC}after`;
+    const MODE_ATTR = `${DATA_STATIC}mode`;
 
     const doc = () => document;
     const getResponseElements = (response) => {
@@ -50,6 +59,7 @@
     };
     const makeXMLHttpRequest = (
       el,
+      dataObj,
       method,
       source,
       withCredentials,
@@ -102,6 +112,8 @@
         req.ontimeout = updateStatus;
       } else {
         req.onprogress = () => updateElStatus("loading");
+        req.onabort = () => updateElStatus();
+        req.ontimeout = () => updateElStatus();
       }
       req.onload = isTemplateObject
         ? () => {
@@ -127,12 +139,45 @@
                 const { response } = req;
                 const templateWrapper = getResponseElements(response);
                 const nodes = templateWrapper.content.childNodes;
-                const parentNode = el.parentNode;
-                for (let i = 0; i < nodes.length; i++) {
-                  const node = nodes[i];
-                  parentNode.insertBefore(node, el);
+                if (dataObj) {
+                  if (dataObj.nodes) {
+                    const newNodes = [];
+                    const nodesLength = dataObj.nodes.length;
+                    for (let i = 0; i < nodesLength; i++) {
+                      const node = dataObj.nodes[i];
+                      if (i === nodesLength - 1) {
+                        for (let j = 0; j < nodes.length; j++) {
+                          const reqNode = nodes[j];
+                          const newNode = dataObj.parentNode.insertBefore(
+                            reqNode,
+                            node
+                          );
+                          newNodes.push(newNode);
+                        }
+                      }
+                      dataObj.parentNode.removeChild(node);
+                    }
+                    dataObj.nodes = newNodes;
+                  } else {
+                    const parentNode = el.parentNode;
+                    const newNodes = [];
+                    for (let i = 0; i < nodes.length; i++) {
+                      const node = nodes[i];
+                      const newNode = parentNode.insertBefore(node, el);
+                      newNodes.push(newNode);
+                    }
+                    parentNode.removeChild(el);
+                    dataObj.nodes = newNodes;
+                    dataObj.parentNode = parentNode;
+                  }
+                } else {
+                  const parentNode = el.parentNode;
+                  for (let i = 0; i < nodes.length; i++) {
+                    const node = nodes[i];
+                    parentNode.insertBefore(node, el);
+                  }
+                  parentNode.removeChild(el);
                 }
-                parentNode.removeChild(el);
               }
             } catch (e) {
               throw e;
@@ -151,6 +196,129 @@
         req.send(requestBody);
       } else {
         req.send();
+      }
+    };
+    const renderTemplate = (el, fn, isFunction) => {
+      const source = el.getAttribute(SOURCE_ATTR);
+      if (source) {
+        const method = (el.getAttribute(METHOD_ATTR) || "GET").toLowerCase();
+        if (getIsMethodValid(method)) {
+          createError(
+            `${METHOD_ATTR} has only GET, POST, PUT, PATCH or DELETE values`
+          );
+        } else {
+          const after = el.getAttribute(AFTER_ATTR);
+          let oldMode = el.getAttribute(MODE_ATTR);
+          let mode = (oldMode || "all").toLowerCase();
+          if (mode !== "one" && mode !== "all")
+            createError(`${MODE_ATTR} has only ONE or ALL values`);
+          const isAll = mode === "all";
+          let dataObj;
+          if (isAll && after) {
+            dataObj = {
+              nodes: null,
+              parentNode: null
+            };
+          }
+          const reqFunction = isFunction
+            ? (
+                withCredentials,
+                timeout,
+                headers,
+                requestBody,
+                templateObject
+              ) =>
+                makeXMLHttpRequest(
+                  undefined,
+                  undefined,
+                  method,
+                  source,
+                  withCredentials,
+                  timeout,
+                  headers,
+                  requestBody,
+                  templateObject
+                )
+            : () => {
+                makeXMLHttpRequest(el, dataObj, method, source, false, 0);
+              };
+          let requestFunction = reqFunction;
+          if (after) {
+            const setEvents = (
+              event,
+              selector,
+              withCredentials,
+              timeout,
+              headers,
+              requestBody,
+              templateObject
+            ) => {
+              const els = doc().querySelectorAll(selector);
+              const afterFn = isAll
+                ? () => {
+                    reqFunction(
+                      withCredentials,
+                      timeout,
+                      headers,
+                      requestBody,
+                      templateObject
+                    );
+                  }
+                : () => {
+                    reqFunction(
+                      withCredentials,
+                      timeout,
+                      headers,
+                      requestBody,
+                      templateObject
+                    );
+                    for (let j = 0; j < els.length; j++) {
+                      const currentAfterEl = els[j];
+                      currentAfterEl.removeEventListener(event, afterFn);
+                    }
+                  };
+              for (let i = 0; i < els.length; i++) {
+                const afterEl = els[i];
+                afterEl.addEventListener(event, afterFn);
+              }
+            };
+            if (after.indexOf(":") > 0) {
+              const afterArr = after.split(":");
+              const event = afterArr[0];
+              const selector = afterArr.slice(1).join(":");
+              requestFunction = (
+                withCredentials,
+                timeout,
+                headers,
+                requestBody,
+                templateObject
+              ) => {
+                setEvents(
+                  event,
+                  selector,
+                  withCredentials,
+                  timeout,
+                  headers,
+                  requestBody,
+                  templateObject
+                );
+              };
+            } else {
+              createError(
+                `${AFTER_ATTR} attribute doesn't work without EventTargets`
+              );
+            }
+          } else {
+            if (oldMode) {
+              createError(
+                `${MODE_ATTR} attribute doesn't work without ${AFTER_ATTR}`
+              );
+            }
+          }
+          return fn(requestFunction);
+        }
+      } else {
+        createError(`The "source" attribute are not found or empty`);
       }
     };
     /**
@@ -204,49 +372,39 @@
         return currentEl;
       };
       const el = getElement(template);
-      const source = el.getAttribute(SOURCE_ATTR);
-      if (source) {
-        const method = (el.getAttribute(METHOD_ATTR) || "GET").toLowerCase();
-        if (method !== "get" && method !== "post") {
-          createError("The method has only GET or POST values");
-        } else {
-          /**
-           *
-           * @param {{  requestBody?: Document | XMLHttpRequestBodyInit | null;
-           *withCredentials?: boolean;
-           * headers?:{
-           *  [key: string]: string;
-           * }
-           * timeout?: number;}} options
-           * @returns {{ status:number, element: undefined | HTMLTemplateElement }}
-           */
-          const templateFunction = ({
-            withCredentials = false,
-            timeout = 0,
-            headers,
-            requestBody
-          } = {}) => {
-            const templateObject = {
-              element: undefined,
-              status: 0
-            };
-            makeXMLHttpRequest(
-              undefined,
-              method,
-              source,
-              withCredentials,
-              timeout,
-              headers,
-              requestBody,
-              templateObject
-            );
-            return templateObject;
+      const renderFn = (requestFunction) => {
+        /**
+         *
+         * @param {{  requestBody?: Document | XMLHttpRequestBodyInit | null;
+         *withCredentials?: boolean;
+         * headers?:{
+         *  [key: string]: string;
+         * }
+         * timeout?: number;}} options
+         * @returns {{ status:number, element: undefined | HTMLTemplateElement }}
+         */
+        const templateFunction = ({
+          withCredentials = false,
+          timeout = 0,
+          headers,
+          requestBody
+        } = {}) => {
+          const templateObject = {
+            element: undefined,
+            status: 0
           };
-          return templateFunction;
-        }
-      } else {
-        createError(`The "source" attribute are not found or empty`);
-      }
+          requestFunction(
+            withCredentials,
+            timeout,
+            headers,
+            requestBody,
+            templateObject
+          );
+          return templateObject;
+        };
+        return templateFunction;
+      };
+      return renderTemplate(el, renderFn, true);
     };
     const CampleHTML = {
       createTemplate
@@ -262,15 +420,10 @@
           createError(
             `Other nodes, except those with the name "${NODE_ATTR}", are not yet supported`
           );
-        const source = el.getAttribute(SOURCE_ATTR);
-        if (source) {
-          const method = (el.getAttribute(METHOD_ATTR) || "GET").toLowerCase();
-          if (method !== "get" && method !== "post") {
-            createError("The method has only GET or POST values");
-          } else {
-            makeXMLHttpRequest(el, method, source, false, 0);
-          }
-        }
+        const renderFn = (requestFunction) => {
+          requestFunction();
+        };
+        renderTemplate(el, renderFn);
       }
     };
     if (doc().readyState === "loading") {

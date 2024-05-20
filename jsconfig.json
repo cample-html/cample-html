@@ -13,6 +13,6 @@
     "strict": true,
     "skipLibCheck": true
   },
-  "include": ["./src/cample-html.js"],
+  "include": ["./dist/cample-html.js"],
   "exclude": ["node_modules"]
 }

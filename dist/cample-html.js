@@ -1,7 +1,7 @@
 /*!
- * cample-html v0.0.3 (https://github.com/cample-html/cample-html)
+ * cample-html v0.0.4 (https://github.com/cample-html/cample-html)
  * Copyright (c) 2024 Anton Maklakov
- * Licensed under MIT (https://github.com/cample-html/cample-html/blob/main/LICENSE)
+ * Licensed under MIT (https://github.com/cample-html/blob/main/LICENSE)
  */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) {
@@ -19,6 +19,9 @@
     "use strict";
     const checkObject = (val) => {
       return typeof val === "object" && !Array.isArray(val) && val !== null;
+    };
+    const checkFunction = (val) => {
+      return Object.prototype.toString.call(val) === "[object Function]";
     };
     const createError = (text) => {
       throw new Error(text);
@@ -57,28 +60,54 @@
       }
       return elWrapper;
     };
-    const makeXMLHttpRequest = (
+    const makeRequest = (
       el,
       dataObj,
       method,
       source,
-      withCredentials,
-      timeout,
-      headers,
-      requestBody,
+      options,
       templateObject
     ) => {
-      const req = new XMLHttpRequest();
-      req.open(method.toUpperCase(), source, true);
-      req.overrideMimeType("text/html");
-      req.withCredentials = withCredentials;
+      const {
+        mode,
+        cache,
+        redirect,
+        get,
+        referrerPolicy,
+        credentials,
+        timeout,
+        headers,
+        requestBody
+      } = options;
+      const initRequest = {
+        method: method.toUpperCase()
+      };
+      if (credentials !== undefined) {
+        initRequest.credentials = credentials;
+      }
+      if (requestBody !== undefined) {
+        initRequest.body = requestBody;
+      }
+      if (mode !== undefined) {
+        initRequest.mode = mode;
+      }
+      if (cache !== undefined) {
+        initRequest.cache = cache;
+      }
+      if (redirect !== undefined) {
+        initRequest.redirect = redirect;
+      }
+      if (referrerPolicy !== undefined) {
+        initRequest.referrerPolicy = referrerPolicy;
+      }
       if (headers) {
         if (checkObject(headers)) {
+          const newHeaders = new Headers();
           for (const header in headers) {
             const [key, value] = header;
             if (typeof value === "string") {
               try {
-                req.setRequestHeader(key, value);
+                newHeaders.set(key, value);
               } catch (e) {
                 throw e;
               }
@@ -86,15 +115,20 @@
               createError(`Header has no string value`);
             }
           }
+          initRequest.headers = newHeaders;
         } else {
           createError(`The "header" property does not have a value object`);
         }
       }
+      if (timeout) {
+        initRequest.signal = AbortSignal.timeout(timeout);
+      }
       const isTemplateObject = templateObject !== undefined;
-      req.timeout = timeout;
-      const updateStatus = () => {
-        if (templateObject.status !== req.status)
-          templateObject.status = req.status;
+      const updateStatus = (status) => {
+        if (templateObject.status !== status) {
+          templateObject.status = status;
+          get?.("status", status);
+        }
       };
       const updateElStatus = (status) => {
         if (status) {
@@ -104,99 +138,73 @@
         }
       };
       if (isTemplateObject) {
-        req.onabort = updateStatus;
-        req.onloadend = updateStatus;
-        req.onloadstart = updateStatus;
-        req.onprogress = updateStatus;
-        req.onreadystatechange = updateStatus;
-        req.ontimeout = updateStatus;
+        updateStatus(0);
       } else {
-        req.onprogress = () => updateElStatus("loading");
-        req.onabort = () => updateElStatus();
-        req.ontimeout = () => updateElStatus();
+        updateElStatus("loading");
       }
-      req.onload = isTemplateObject
-        ? () => {
-            updateStatus();
-            try {
-              if (req.status !== 200) {
-                createError(`Request error with code ${req.status}`);
-              } else {
-                const { response } = req;
-                const templateWrapper = getResponseElements(response);
-                templateObject.element = templateWrapper;
-              }
-            } catch (e) {
-              throw e;
-            }
-          }
-        : () => {
+      fetch(source, initRequest)
+        .then((response) => {
+          if (isTemplateObject) {
+            updateStatus(response.status);
+          } else {
             updateElStatus();
-            try {
-              if (req.status !== 200) {
-                createError(`Request error with code ${req.status}`);
-              } else {
-                const { response } = req;
-                const templateWrapper = getResponseElements(response);
-                const nodes = templateWrapper.content.childNodes;
-                if (dataObj) {
-                  if (dataObj.nodes) {
-                    const newNodes = [];
-                    const nodesLength = dataObj.nodes.length;
-                    for (let i = 0; i < nodesLength; i++) {
-                      const node = dataObj.nodes[i];
-                      if (i === nodesLength - 1) {
-                        for (let j = 0; j < nodes.length; j++) {
-                          const reqNode = nodes[j];
-                          const newNode = dataObj.parentNode.insertBefore(
-                            reqNode,
-                            node
-                          );
-                          newNodes.push(newNode);
-                        }
-                      }
-                      dataObj.parentNode.removeChild(node);
-                    }
-                    dataObj.nodes = newNodes;
-                  } else {
-                    const parentNode = el.parentNode;
-                    const newNodes = [];
-                    for (let i = 0; i < nodes.length; i++) {
-                      const node = nodes[i];
-                      const newNode = parentNode.insertBefore(node, el);
+          }
+          if (!response.ok) {
+            createError(`Request error with code ${response.status}`);
+          }
+          return response.text();
+        })
+        .then((data) => {
+          const templateWrapper = getResponseElements(data);
+          if (isTemplateObject) {
+            templateObject.element = templateWrapper;
+            get?.("element", templateWrapper);
+          } else {
+            const nodes = templateWrapper.content.childNodes;
+            if (dataObj) {
+              if (dataObj.nodes) {
+                const newNodes = [];
+                const nodesLength = dataObj.nodes.length;
+                for (let i = 0; i < nodesLength; i++) {
+                  const node = dataObj.nodes[i];
+                  if (i === nodesLength - 1) {
+                    for (let j = 0; j < nodes.length; j++) {
+                      const reqNode = nodes[j];
+                      const newNode = dataObj.parentNode.insertBefore(
+                        reqNode,
+                        node
+                      );
                       newNodes.push(newNode);
                     }
-                    parentNode.removeChild(el);
-                    dataObj.nodes = newNodes;
-                    dataObj.parentNode = parentNode;
                   }
-                } else {
-                  const parentNode = el.parentNode;
-                  for (let i = 0; i < nodes.length; i++) {
-                    const node = nodes[i];
-                    parentNode.insertBefore(node, el);
-                  }
-                  parentNode.removeChild(el);
+                  dataObj.parentNode.removeChild(node);
                 }
+                dataObj.nodes = newNodes;
+              } else {
+                const parentNode = el.parentNode;
+                const newNodes = [];
+                for (let i = 0; i < nodes.length; i++) {
+                  const node = nodes[i];
+                  const newNode = parentNode.insertBefore(node, el);
+                  newNodes.push(newNode);
+                }
+                parentNode.removeChild(el);
+                dataObj.nodes = newNodes;
+                dataObj.parentNode = parentNode;
               }
-            } catch (e) {
-              throw e;
+            } else {
+              const parentNode = el.parentNode;
+              for (let i = 0; i < nodes.length; i++) {
+                const node = nodes[i];
+                parentNode.insertBefore(node, el);
+              }
+              parentNode.removeChild(el);
             }
-          };
-      req.onerror = isTemplateObject
-        ? (e) => {
-            updateStatus();
-            throw e;
           }
-        : (e) => {
-            updateElStatus();
-            throw e;
-          };
-      if (requestBody !== undefined) {
-        req.send(requestBody);
-      } else {
-        req.send();
-      }
+        })
+        .catch((error) => {
+          throw error;
+        });
     };
     const renderTemplate = (el, fn, isFunction) => {
       const source = el.getAttribute(SOURCE_ATTR);
@@ -209,10 +217,10 @@
         } else {
           const after = el.getAttribute(AFTER_ATTR);
           let oldMode = el.getAttribute(MODE_ATTR);
-          let mode = (oldMode || "all").toLowerCase();
-          if (mode !== "one" && mode !== "all")
+          let modeAttr = (oldMode || "all").toLowerCase();
+          if (modeAttr !== "one" && modeAttr !== "all")
             createError(`${MODE_ATTR} has only ONE or ALL values`);
-          const isAll = mode === "all";
+          const isAll = modeAttr === "all";
           let dataObj;
           if (isAll && after) {
             dataObj = {
@@ -221,57 +229,28 @@
             };
           }
           const reqFunction = isFunction
-            ? (
-                withCredentials,
-                timeout,
-                headers,
-                requestBody,
-                templateObject
-              ) =>
-                makeXMLHttpRequest(
+            ? (options, templateObject) =>
+                makeRequest(
                   undefined,
                   undefined,
                   method,
                   source,
-                  withCredentials,
-                  timeout,
-                  headers,
-                  requestBody,
+                  options,
                   templateObject
                 )
             : () => {
-                makeXMLHttpRequest(el, dataObj, method, source, false, 0);
+                makeRequest(el, dataObj, method, source, {});
               };
           let requestFunction = reqFunction;
           if (after) {
-            const setEvents = (
-              event,
-              selector,
-              withCredentials,
-              timeout,
-              headers,
-              requestBody,
-              templateObject
-            ) => {
+            const setEvents = (event, selector, options, templateObject) => {
               const els = doc().querySelectorAll(selector);
               const afterFn = isAll
                 ? () => {
-                    reqFunction(
-                      withCredentials,
-                      timeout,
-                      headers,
-                      requestBody,
-                      templateObject
-                    );
+                    reqFunction(options, templateObject);
                   }
                 : () => {
-                    reqFunction(
-                      withCredentials,
-                      timeout,
-                      headers,
-                      requestBody,
-                      templateObject
-                    );
+                    reqFunction(options, templateObject);
                     for (let j = 0; j < els.length; j++) {
                       const currentAfterEl = els[j];
                       currentAfterEl.removeEventListener(event, afterFn);
@@ -286,22 +265,8 @@
               const afterArr = after.split(":");
               const event = afterArr[0];
               const selector = afterArr.slice(1).join(":");
-              requestFunction = (
-                withCredentials,
-                timeout,
-                headers,
-                requestBody,
-                templateObject
-              ) => {
-                setEvents(
-                  event,
-                  selector,
-                  withCredentials,
-                  timeout,
-                  headers,
-                  requestBody,
-                  templateObject
-                );
+              requestFunction = (options, templateObject) => {
+                setEvents(event, selector, options, templateObject);
               };
             } else {
               createError(
@@ -375,31 +340,31 @@
       const renderFn = (requestFunction) => {
         /**
          *
-         * @param {{  requestBody?: Document | XMLHttpRequestBodyInit | null;
-         *withCredentials?: boolean;
+         * @param {{
+         * mode?:RequestMode;
+         * cache?:RequestCache;
+         * redirect?:RequestRedirect;
+         * referrerPolicy?:ReferrerPolicy;
+         * get?:(prop:string,value:any)=>void;
+         * requestBody?: BodyInit | null;
+         * credentials?: RequestCredentials;
          * headers?:{
          *  [key: string]: string;
          * }
          * timeout?: number;}} options
          * @returns {{ status:number, element: undefined | HTMLTemplateElement }}
          */
-        const templateFunction = ({
-          withCredentials = false,
-          timeout = 0,
-          headers,
-          requestBody
-        } = {}) => {
+        const templateFunction = (options = {}) => {
           const templateObject = {
             element: undefined,
             status: 0
           };
-          requestFunction(
-            withCredentials,
-            timeout,
-            headers,
-            requestBody,
-            templateObject
-          );
+          if (options.get) {
+            if (!checkFunction(options.get)) {
+              createError("The get property has a function value");
+            }
+          }
+          requestFunction(options, templateObject);
           return templateObject;
         };
         return templateFunction;

@@ -15,7 +15,6 @@
 <div align="center"><a href="https://cample-html.github.io">Website</a> • <a href="https://cample-html.github.io/#/?id=template">Documentation</a>
 </div>
 
-> [!IMPORTANT]
 > From version 0.0.4 the package switches to fetch!
 
 ## About

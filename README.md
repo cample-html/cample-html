@@ -15,9 +15,12 @@
 <div align="center"><a href="https://cample-html.github.io">Website</a> • <a href="https://cample-html.github.io/#/?id=template">Documentation</a>
 </div>
 
+> [!IMPORTANT]
+> From version 0.0.4 the package switches to fetch!
+
 ## About
 
-cample-html is a small library for working with server-side html. It is based on requests sent to the server via XMLHttpRequest and processed into ready-made HTML.
+cample-html is a small library for working with server-side html. It is based on requests sent to the server via fetch and processed into ready-made HTML.
 
 ## Example #1
 
@@ -32,7 +35,7 @@ cample-html is a small library for working with server-side html. It is based on
   ></template>
 </div>
 
-<script src="https://unpkg.com/cample-html@0.0.3"></script>
+<script src="https://unpkg.com/cample-html@0.0.4"></script>
 ```
 
 ### Server route - /api/test
@@ -48,7 +51,7 @@ cample-html is a small library for working with server-side html. It is based on
   <div>123</div>
 </div>
 
-<script src="https://unpkg.com/cample-html@0.0.3"></script>
+<script src="https://unpkg.com/cample-html@0.0.4"></script>
 ```
 
 ## Example #2
@@ -59,7 +62,14 @@ const templateFn = CampleHTML.createTemplate(
 );
 
 // (After the response arrives from the server) { element = template (HTMLTemplateElement type), status = 200 }
-const elementObj = templateFn({ withCredentials:false, timeout:0 });
+const elementObj = templateFn({
+  credentials: "same-origin",
+  get: (prop, value) => {
+    if (prop === "element") {
+      console.log(value);
+    }
+  },
+});
 ```
 
 ### Why cample-html?
@@ -94,13 +104,13 @@ Along the path node-modules/cample-html/dist you can find two files that contain
 
 ### Manual download
 
-You can install the package by simply [downloading](https://unpkg.com/cample-html@0.0.3/dist/cample-html.min.js) it as a file and moving it to the project folder.
+You can install the package by simply [downloading](https://unpkg.com/cample-html@0.0.4/dist/cample-html.min.js) it as a file and moving it to the project folder.
 
 ```html
 <script src="./cample-html.min.js"></script>
 ```
 
-If, for some reason, you do not need the minified file, then you can download the full file from this [link](https://unpkg.com/cample-html@0.0.3/dist/cample-html.js).
+If, for some reason, you do not need the minified file, then you can download the full file from this [link](https://unpkg.com/cample-html@0.0.4/dist/cample-html.js).
 
 ```html
 <script src="./cample-html.js"></script>
@@ -114,7 +124,7 @@ This method involves connecting the file through a third-party resource, which p
 
 ```html
 <script
-  src="https://unpkg.com/cample-html@0.0.3"
+  src="https://unpkg.com/cample-html@0.0.4"
 ></script>
 <!--
   integrity="sha384-..."
@@ -142,7 +152,14 @@ const templateFn = CampleHTML.createTemplate(
 );
 
 // (After the response arrives from the server) { element = template (HTMLTemplateElement type), status = 200 }
-const elementObj = templateFn({ withCredentials: false, timeout: 0 });
+const elementObj = templateFn({
+  credentials: "same-origin",
+  get: (prop, value) => {
+    if (prop === "element") {
+      console.log(value);
+    }
+  },
+});
 ```
 
 These will be the two main ways to interact with the server. In future versions, the functionality will be expanded, but the methods themselves will not change.

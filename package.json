@@ -1,6 +1,6 @@
 {
   "name": "cample-html",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Work with server-side HTML with ease",
   "main": "dist/cample-html.min.js",
   "scripts": {

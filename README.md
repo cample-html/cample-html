@@ -16,7 +16,7 @@
 </div>
 <br/>
 
-> From version 0.0.4 the package switches to fetch!
+> From version 0.0.4 the package switches to `fetch`!
 
 ## About
 

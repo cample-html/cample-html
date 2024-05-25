@@ -1,4 +1,4 @@
-<h1>THIS PACKAGE IS NOW [htmapi](https://github.com/htmapi/htmapi)</h1>
+<h1>THIS PACKAGE IS NOW [hmpl](https://github.com/hmpljs/hmpl)</h1>
 <p align="center">
     <a href="https://www.npmjs.com/package/cample-html">
         <img width="200" height="200" src="https://github.com/Camplejs/media/blob/main/logo_transparent.png" alt="cample" >
